@@ -130,7 +130,7 @@ if __name__ == "__main__":
     )
 
     # 2. 데이터셋 준비
-    train_dataset = build_dataset(DATA_PATH, tokenizer)
+    train_dataset = build_dataset(DATA_PATH)
 
     trainer = RLOOTrainer(
         reward_funcs=rule_based_reward_fn,
