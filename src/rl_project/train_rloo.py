@@ -3,12 +3,19 @@ import re
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import RLOOTrainer, RLOOConfig
+import wandb
 
 from dataset_rloo import build_dataset
 
-SFT_MODEL_PATH = "./Qwen3-0.6-Countdown-SFT/final_model"
+SFT_MODEL_PATH = "kwkim1030/Qwen3-0.6-Countdwon-SoS-SFT"
 DATA_PATH = "Jiayi-Pan/Countdown-Tasks-3to4"
-OUTPUT_DIR = "./Qwen3-0.6-Countdown-rloo-aligned"
+OUTPUT_DIR = "./Qwen3-0.6-Countdown-SoS-RLOO"
+
+wandb.init(
+    project="Countdown-SoS",  # 프로젝트 이름 (폴더 같은 개념)
+    name="sos-rloo-experiment-1",         # 이번 실행의 이름
+    config={"model": "Qwen3-0.6-Countdwon-SoS-SFT", "lr": 1e-6} # (선택) 추가로 기록할 정보
+)
 
 
 def rule_based_reward_fn(prompts, completions, **kwargs):
@@ -53,7 +60,7 @@ def rule_based_reward_fn(prompts, completions, **kwargs):
             continue
         
         # 여기까지 왔으면 기본 포맷 점수 부여
-        reward +=  3.0
+        reward +=  10.0
         
         # "숫자 연산자 숫자 = 숫자" 패턴 찾기
         equations = re.findall(r"(\d+)\s*([\+\-\*\/])\s*(\d+)\s*=\s*(\d+)", think_content)
@@ -74,7 +81,7 @@ def rule_based_reward_fn(prompts, completions, **kwargs):
             final_val = eval(clean)
             
             if abs(final_val - target_val) < 1e-5:
-                reward += 10.0  # 정답 맞히면 큰 점수
+                reward += 20.0  # 정답 맞히면 큰 점수
             else:
                 reward -= 0.5  # 틀리면 감점
         except:
@@ -110,18 +117,16 @@ if __name__ == "__main__":
         gradient_accumulation_steps=16,
         gradient_checkpointing=True,
         bf16=True,
-        report_to="none",
-        logging_dir="./out/logs",
+        report_to="wandb",
+        run_name="sos-rloo-experiment-1",
         logging_strategy="steps",
         logging_steps=10,
         
         use_vllm=True, 
-        vllm_mode="server",
-        vllm_server_host="127.0.0.1",
-        vllm_server_port=8000,
+        vllm_mode="colocate",
 
         max_prompt_length=512,       # 입력(질문) 길이 제한
-        max_completion_length=2048,  # 생성(답변) 길이 제한 (<think> 포함 넉넉히)
+        max_completion_length=4096,  # 생성(답변) 길이 제한 (<think> 포함 넉넉히)
     )
 
     # 2. 데이터셋 준비
@@ -136,7 +141,7 @@ if __name__ == "__main__":
     )
 
     print("Starting RLOO Training...")
-    trainer.train(resume_from_checkpoint=OUTPUT_DIR+"/checkpoint-500")
+    trainer.train()
     
     print("Saving RLOO Aligned Model...")
     trainer.save_model(os.path.join(OUTPUT_DIR, "final_model"))
