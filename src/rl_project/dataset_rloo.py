@@ -3,7 +3,7 @@ from datasets import load_dataset
 
 def build_dataset(name):
     # 1. 데이터 로드
-    ds = load_dataset(name, split="train[:20000]")
+    ds = load_dataset(name, split="train[:10000]")
     filtered_ds = ds.filter(lambda example: len(example['nums']) == 4)
 
     def format_prompt(example):

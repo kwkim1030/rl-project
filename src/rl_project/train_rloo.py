@@ -114,7 +114,7 @@ if __name__ == "__main__":
         num_train_epochs=1,          # RL은 보통 1 epoch만 해도 충분 (또는 step 기준)
         learning_rate=1e-6,          
         per_device_train_batch_size=1,
-        gradient_accumulation_steps=16,
+        gradient_accumulation_steps=8,
         gradient_checkpointing=True,
         bf16=True,
         report_to="wandb",
