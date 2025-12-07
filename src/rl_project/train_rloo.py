@@ -108,7 +108,7 @@ if __name__ == "__main__":
         SFT_MODEL_PATH,
         dtype=torch.bfloat16,
         device_map="auto",
-        attn_implementation="flash_attention_2", 
+        # attn_implementation="flash_attention_2", 
     )
 
     # 3. RLOO 설정 (TrainingArguments 역할)

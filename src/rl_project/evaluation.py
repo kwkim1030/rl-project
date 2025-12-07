@@ -10,7 +10,6 @@ import numpy as np
 
 # 1. 평가할 모델 경로들
 models_to_test = {
-    "Baseline": "Qwen/Qwen3-0.6B-Base",
     "SFT": "kwkim1030/Qwen3-0.6-Countdwon-SoS-SFT",
     "RLOO": "kwkim1030/Qwen3-0.6-Countdwon-SoS-RLOO"
 }
@@ -77,7 +76,7 @@ for name, path in models_to_test.items():
         max_tokens=4096,           # 생성 최대 길이
         stop=["<|im_end|>"]        # 생성 중단 토큰 (필수)
     )
-    acc, err = evaluate_model(path, dataset, llm, sampling_params)
+    acc, err = evaluate_model(path, filtered_dataset, llm, sampling_params)
     results[name] = {"Accuracy": acc, "Format Error": err}
 
 print("\n=== 실험 결과표 ===")
