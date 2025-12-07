@@ -71,7 +71,7 @@ for name, path in models_to_test.items():
         model=path, 
         max_model_len=4096,
         dtype="bfloat16",           
-        gpu_memory_utilization=0.6
+        gpu_memory_utilization=0.4
     )
 
     sampling_params = SamplingParams(
