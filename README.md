@@ -71,3 +71,8 @@ uv run accelerate launch src/rl_project/train_sft.py
 ```bash
 uv run accelerate launch src/rl_project/train_rloo.py
 ```
+
+### Evaluation
+```bash
+uv run src/rl_project/evaluation.py
+```
