@@ -12,11 +12,11 @@ uv python install 3.12
 ```
 
 ### Model Repository 
-모델은 huggingface repository 에 저장하였습니다.
-[SFT-Model](https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-SFT)
-https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-SFT
-[RLHF-Model](https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-RLOO)
-https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-RLOO
+모델은 huggingface repository 에 저장하였습니다. <br/>
+[SFT-Model](https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-SFT) -
+https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-SFT<br/>
+[RLHF-Model](https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-RLOO) -
+https://huggingface.co/kwkim1030/Qwen3-0.6-Countdwon-SoS-RLOO<br/>
 
 ### Git Clone
 #### 데이터셋 구성
