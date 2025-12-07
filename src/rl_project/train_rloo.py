@@ -23,30 +23,31 @@ def rule_based_reward_fn(prompts, completions, **kwargs):
     for prompt, completion in zip(prompts, completions):
         reward = 0.0
         
-        # 1. Prompt에서 숫자와 목표값 파싱 (이전 코드 로직 활용)
-        # user_prompt 예시: "...숫자들: [2, 67, 36, 23], 목표값: 58..."
         try:
-            nums_match = re.search(r"nums:\s*\[([\d,\s]+)\],\s*target:\s*(\d+)", prompt)
-            if not nums_match:
+            match = re.search(r"target\s*:\s*(\d+)", prompt[1]['content'])
+            
+            if not match:
                 rewards.append(0.0) # 프롬프트 파싱 실패 시 0점
                 continue
             
-            target_nums = [int(n.strip()) for n in nums_match.group(1).split(',')]
-            target_val = int(nums_match.group(2))
+            target_val = int(match.group(1))
         except:
             rewards.append(0.0)
             continue
         # 2. 포맷 보상 (Format Reward)
-        # <think>...</think> 와 정답: 패턴이 있는지 확인
-        has_think = "<think>" in completion and "</think>" in completion
+        # <think>...</think> 정답 패턴 이있는지 확인
+        pattern = r"^<think>([\s\S]*?)</think>\s*([\s\S]*?)$"
+        completion_content = completion[0]["content"]
+        
+        has_think = re.match(pattern, completion_content)
         if not has_think:
-            rewards.append(-5.0) # 생각 태그가 없으면 큰 페널티
+            rewards.append(-5.0) # 생각 태그가 없으면 큰 
             continue
         
         try:
-            parts = completion.split("</think>")
-            think_content = parts[0].replace("<think>", "").strip()
-            answer_content = parts[1].strip()
+            think_content = has_think.group(1)
+            answer_content = has_think.group(2)
+            
         except:
             rewards.append(-0.5)
             return rewards
@@ -57,6 +58,7 @@ def rule_based_reward_fn(prompts, completions, **kwargs):
         clean = re.sub(r"[^0-9+\-*/()]", "", answer_content)
         if not clean:
             rewards.append(-5.0) # 태그 뒤에 수식이 없으면 페널티
+            print(f"4 : {rewards}")
             continue
         
         # 여기까지 왔으면 기본 포맷 점수 부여
@@ -105,7 +107,8 @@ if __name__ == "__main__":
     model = AutoModelForCausalLM.from_pretrained(
         SFT_MODEL_PATH,
         dtype=torch.bfloat16,
-        device_map="auto"
+        device_map="auto",
+        attn_implementation="flash_attention_2", 
     )
 
     # 3. RLOO 설정 (TrainingArguments 역할)
@@ -113,12 +116,13 @@ if __name__ == "__main__":
         output_dir=OUTPUT_DIR,
         num_train_epochs=1,          # RL은 보통 1 epoch만 해도 충분 (또는 step 기준)
         learning_rate=1e-6,          
+        num_generations=4,
         per_device_train_batch_size=1,
         gradient_accumulation_steps=8,
         gradient_checkpointing=True,
         bf16=True,
         report_to="wandb",
-        run_name="sos-rloo-experiment-1",
+        run_name="sos-rloo-experiment-3",
         logging_strategy="steps",
         logging_steps=10,
         
