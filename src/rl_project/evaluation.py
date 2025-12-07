@@ -16,25 +16,10 @@ models_to_test = {
 }
 
 # 2. 테스트 데이터 로드 (학습에 안 쓴 뒷부분 5000개)
-dataset = load_dataset('Jiayi-Pan/Countdown-Tasks-3to4', split='train[-5000:]')
+dataset = load_dataset('Jiayi-Pan/Countdown-Tasks-3to4', split='train[-1000:]')
 filtered_dataset = dataset.filter(lambda example: len(example['nums']) == 4)
 
-def evaluate_model(model_path, dataset):
-    print(f"Evaluating {model_path}...")
-    llm = LLM(
-        model=model_path, 
-        max_model_len=4096,
-        dtype="bfloat16",           
-        gpu_memory_utilization=0.6
-    )
-
-    sampling_params = SamplingParams(
-        temperature=0.6,
-        top_p=0.9,
-        max_tokens=4096,           # 생성 최대 길이
-        stop=["<|im_end|>"]        # 생성 중단 토큰 (필수)
-    )
-    
+def evaluate_model(model_path, dataset, llm, sampling_parms):    
     correct_count = 0
     format_error_count = 0
     total = len(dataset)
@@ -63,6 +48,7 @@ def evaluate_model(model_path, dataset):
             clean = re.sub(r"[^0-9+\-*/()]", "", answer_part)
             # 정답 확인
             pred_val = eval(clean)
+            print(pred_val)
 
             if abs(pred_val - example['target']) < 1e-5:
                 correct_count += 1
@@ -77,7 +63,21 @@ def evaluate_model(model_path, dataset):
 # 실행 및 결과 출력
 results = {}
 for name, path in models_to_test.items():
-    acc, err = evaluate_model(path, dataset)
+    print(f"Evaluating {path}...")
+    llm = LLM(
+        model=path, 
+        max_model_len=4096,
+        dtype="bfloat16",           
+        gpu_memory_utilization=0.6
+    )
+
+    sampling_params = SamplingParams(
+        temperature=0.6,
+        top_p=0.9,
+        max_tokens=4096,           # 생성 최대 길이
+        stop=["<|im_end|>"]        # 생성 중단 토큰 (필수)
+    )
+    acc, err = evaluate_model(path, dataset, llm, sampling_params)
     results[name] = {"Accuracy": acc, "Format Error": err}
 
 print("\n=== 실험 결과표 ===")
