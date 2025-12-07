@@ -38,13 +38,17 @@ def evaluate_model(model_path, dataset, llm, sampling_parms):
         # --- 채점 로직 (간소화) ---
         try:
             # 수식 추출 (Format 체크)
-            if "</think>" in completions:
-                answer_part = completions.split("</think>")[1].strip()
-            else:
-                answer_part = completions # 태그 없으면 전체를 봄 (SFT의 경우)
-                format_error_count += 1            
+            pattern = r"^<think>([\s\S]*?)</think>\s*([\s\S]*?)$"
             
-            clean = re.sub(r"[^0-9+\-*/()]", "", answer_part)
+            has_think = re.match(pattern, completions)
+            if has_think:
+                think_content = has_think.group(1)
+                answer_content = has_think.group(2)
+            else:
+                answer_content = completions # 태그 없으면 전체를 봄 (SFT의 경우)
+                format_error_count += 1           
+            
+            clean = re.sub(r"[^0-9+\-*/()]", "", answer_content)
             # 정답 확인
             pred_val = eval(clean)
             print(pred_val)
